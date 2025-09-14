@@ -5,13 +5,13 @@ LLM behavior for testing and development purposes.
 """
 
 import asyncio
-import random
 import hashlib
-from typing import List, Optional, Dict, Any
+import random
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
+from llm_judge.core.category import CategoryDefinition, Example
 from llm_judge.providers.base import JudgeProvider, ProviderResult
-from llm_judge.core.category import CategoryDefinition, Example, PropertyType
 
 
 @dataclass
@@ -25,6 +25,7 @@ class MockConfig:
         model_behavior: Which real model to simulate
         deterministic: Whether to use deterministic responses (for testing)
     """
+
     response_delay: float = 0.1
     failure_rate: float = 0.0
     quality_mode: str = "medium"
@@ -100,8 +101,7 @@ class MockProvider(JudgeProvider):
         # Determine which model to simulate
         self.simulated_model = self._get_simulated_model(model)
         self.model_profile = self.MODEL_PROFILES.get(
-            self.simulated_model,
-            self.MODEL_PROFILES["gpt-3.5-turbo"]
+            self.simulated_model, self.MODEL_PROFILES["gpt-3.5-turbo"]
         )
 
         # Response cache for deterministic mode
@@ -219,7 +219,6 @@ class MockProvider(JudgeProvider):
     ) -> ProviderResult:
         """Generate realistic evaluation based on content analysis."""
         # Analyze content characteristics
-        content_lower = content.lower()
         word_count = len(content.split())
 
         # Base quality from model profile
@@ -280,10 +279,12 @@ class MockProvider(JudgeProvider):
             # Pick 1-2 random examples as "similar"
             num_similar = min(2, len(examples))
             for ex in random.sample(examples, num_similar):
-                similar_examples.append({
-                    "content": ex.content[:100] + "...",
-                    "similarity": random.uniform(0.6, 0.9),
-                })
+                similar_examples.append(
+                    {
+                        "content": ex.content[:100] + "...",
+                        "similarity": random.uniform(0.6, 0.9),
+                    }
+                )
 
         # Calculate simulated cost
         input_tokens = len(content) // 4 + 200  # Rough estimate
@@ -333,15 +334,15 @@ class MockProvider(JudgeProvider):
     ) -> float:
         """Simulate intelligent property evaluation."""
         # Use property's measurement function if available
-        if hasattr(prop, 'measurement_function') and prop.measurement_function:
+        if hasattr(prop, "measurement_function") and prop.measurement_function:
             try:
                 measured_value = prop.measurement_function(content)
-                if hasattr(prop, 'meets_threshold'):
+                if hasattr(prop, "meets_threshold"):
                     if prop.meets_threshold(measured_value):
                         return random.uniform(0.7, 1.0) * base_quality
                     else:
                         return random.uniform(0.0, 0.4) * base_quality
-            except:
+            except Exception:
                 pass
 
         # Fallback to keyword-based simulation
@@ -350,7 +351,7 @@ class MockProvider(JudgeProvider):
 
         # Check for property-related keywords
         keywords_found = 0
-        keywords = prop_name_lower.split('_') + [prop_name_lower]
+        keywords = prop_name_lower.split("_") + [prop_name_lower]
         for keyword in keywords:
             if keyword in content_lower:
                 keywords_found += 1
@@ -400,9 +401,7 @@ class MockProvider(JudgeProvider):
             )
 
         if low_scoring:
-            reasoning_parts.append(
-                f"Weak alignment with: {', '.join(low_scoring)}."
-            )
+            reasoning_parts.append(f"Weak alignment with: {', '.join(low_scoring)}.")
 
         # Add quality-specific insights
         if self.config["quality_mode"] == "high":
@@ -429,8 +428,12 @@ class MockProvider(JudgeProvider):
             if score < 0.5:
                 # Find the property definition
                 prop_def = next(
-                    (p for p in category.characteristic_properties if p.name == prop_name),
-                    None
+                    (
+                        p
+                        for p in category.characteristic_properties
+                        if p.name == prop_name
+                    ),
+                    None,
                 )
                 if prop_def:
                     feedback_parts.append(

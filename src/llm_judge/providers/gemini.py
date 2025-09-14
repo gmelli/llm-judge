@@ -4,24 +4,26 @@ This module provides integration with Google's Gemini models for content evaluat
 including support for structured JSON output and thinking budget for enhanced reasoning.
 """
 
-import os
 import json
 import logging
-from typing import List, Optional, Dict, Any
-from dataclasses import asdict
+import os
+from typing import Any, Dict, List, Optional
 
-from llm_judge.providers.base import JudgeProvider, ProviderResult
 from llm_judge.core.category import CategoryDefinition, Example
+from llm_judge.providers.base import JudgeProvider, ProviderResult
 
 logger = logging.getLogger(__name__)
 
 # Try to import Google Generative AI
 try:
     import google.generativeai as genai
+
     GEMINI_AVAILABLE = True
 except ImportError:
     GEMINI_AVAILABLE = False
-    logger.warning("Google Generative AI package not installed. Run: pip install google-generativeai")
+    logger.warning(
+        "Google Generative AI package not installed. Run: pip install google-generativeai"
+    )
 
 
 class GeminiProvider(JudgeProvider):
@@ -78,10 +80,10 @@ class GeminiProvider(JudgeProvider):
 
         # Try multiple environment variable names for compatibility
         self.api_key = (
-            api_key or
-            os.getenv("GOOGLE_API_KEY") or
-            os.getenv("GOOGLE_AI_API_KEY") or
-            os.getenv("GEMINI_API_KEY")
+            api_key
+            or os.getenv("GOOGLE_API_KEY")
+            or os.getenv("GOOGLE_AI_API_KEY")
+            or os.getenv("GEMINI_API_KEY")
         )
 
         if not self.api_key:
@@ -134,19 +136,19 @@ class GeminiProvider(JudgeProvider):
             "properties": {
                 "matches_category": {
                     "type": "boolean",
-                    "description": "Whether the content matches the category"
+                    "description": "Whether the content matches the category",
                 },
                 "confidence": {
                     "type": "number",
-                    "description": "Confidence score between 0 and 1"
+                    "description": "Confidence score between 0 and 1",
                 },
                 "property_scores": {
                     "type": "object",
-                    "description": "Scores for each characteristic property as key-value pairs"
+                    "description": "Scores for each characteristic property as key-value pairs",
                 },
                 "reasoning": {
                     "type": "string",
-                    "description": "Detailed reasoning for the evaluation"
+                    "description": "Detailed reasoning for the evaluation",
                 },
                 "similar_examples": {
                     "type": "array",
@@ -155,16 +157,21 @@ class GeminiProvider(JudgeProvider):
                         "type": "object",
                         "properties": {
                             "content": {"type": "string"},
-                            "similarity": {"type": "number"}
-                        }
-                    }
+                            "similarity": {"type": "number"},
+                        },
+                    },
                 },
                 "feedback": {
                     "type": "string",
-                    "description": "Constructive feedback for improvement"
-                }
+                    "description": "Constructive feedback for improvement",
+                },
             },
-            "required": ["matches_category", "confidence", "property_scores", "reasoning"]
+            "required": [
+                "matches_category",
+                "confidence",
+                "property_scores",
+                "reasoning",
+            ],
         }
 
     def _create_evaluation_prompt(
@@ -309,7 +316,7 @@ Return your evaluation as a JSON object with these fields:
         import re
 
         # Look for ```json blocks
-        json_block_pattern = r'```json\s*(.*?)\s*```'
+        json_block_pattern = r"```json\s*(.*?)\s*```"
         matches = re.findall(json_block_pattern, text, re.DOTALL)
         for match in matches:
             try:
@@ -318,7 +325,7 @@ Return your evaluation as a JSON object with these fields:
                 continue
 
         # Try to find JSON object with balanced braces
-        json_pattern = r'\{(?:[^{}]|(?:\{[^{}]*\}))*\}'
+        json_pattern = r"\{(?:[^{}]|(?:\{[^{}]*\}))*\}"
         matches = re.findall(json_pattern, text, re.DOTALL)
 
         for match in matches:
@@ -351,7 +358,9 @@ Return your evaluation as a JSON object with these fields:
         output_tokens = len(response) // 4
 
         # Get costs for this model
-        costs = self.MODEL_COSTS.get(self.model, (1.0, 3.0))  # Default costs if model unknown
+        costs = self.MODEL_COSTS.get(
+            self.model, (1.0, 3.0)
+        )  # Default costs if model unknown
         input_cost_per_million = costs[0]
         output_cost_per_million = costs[1]
 
@@ -392,14 +401,14 @@ Return your evaluation as a JSON object with these fields:
         # Process in batches for efficiency
         batch_size = 5  # Gemini can handle multiple evaluations efficiently
         for i in range(0, len(contents), batch_size):
-            batch = contents[i:i + batch_size]
+            batch = contents[i : i + batch_size]
 
             # Evaluate batch concurrently
             import asyncio
-            batch_results = await asyncio.gather(*[
-                self.evaluate(content, category)
-                for content in batch
-            ])
+
+            batch_results = await asyncio.gather(
+                *[self.evaluate(content, category) for content in batch]
+            )
             results.extend(batch_results)
 
         return results

@@ -3,9 +3,8 @@ Main Judge class that orchestrates evaluations.
 """
 
 import asyncio
-from typing import Any, Dict, List, Optional, Union
-
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
 from llm_judge.core.category import CategoryDefinition
 from llm_judge.core.evaluation import (
@@ -109,6 +108,7 @@ class Judge:
         except (ImportError, AttributeError) as e:
             # Log the error for debugging
             import logging
+
             logger = logging.getLogger(__name__)
             logger.warning(f"Failed to import {provider_name} provider: {e}")
 
@@ -190,15 +190,21 @@ class Judge:
             for prop_name, score_value in provider_result.scores.items():
                 if prop_name in engine_result.property_scores:
                     engine_result.property_scores[prop_name].raw_score = score_value
-                    engine_result.property_scores[prop_name].meets_threshold = score_value > 0.5
+                    engine_result.property_scores[prop_name].meets_threshold = (
+                        score_value > 0.5
+                    )
 
         # Update engine result with provider information
         engine_result.model_used = provider_result.model
         engine_result.evaluation_cost = provider_result.cost
 
         # Track costs if enabled
-        if self.track_costs and self.cost_tracker and hasattr(provider_result, 'metadata'):
-            usage_data = provider_result.metadata.get('usage', {})
+        if (
+            self.track_costs
+            and self.cost_tracker
+            and hasattr(provider_result, "metadata")
+        ):
+            usage_data = provider_result.metadata.get("usage", {})
             if usage_data:
                 self.cost_tracker.track_evaluation(
                     provider=provider_result.provider,
@@ -207,7 +213,7 @@ class Judge:
                     category=engine_result.category,
                 )
                 # Update cost from tracker (more accurate)
-                engine_result.evaluation_cost = usage_data.get('total_cost', 0.0)
+                engine_result.evaluation_cost = usage_data.get("total_cost", 0.0)
 
         # Use provider confidence directly
         engine_result.confidence = provider_result.confidence

@@ -41,10 +41,10 @@ class OpenAIProvider(JudgeProvider):
         super().__init__(model, temperature, **kwargs)
         # Try multiple environment variable names for compatibility
         self.api_key = (
-            api_key or
-            os.getenv("OPENAI_API_KEY") or
-            os.getenv("OPENAI_KEY") or
-            os.getenv("AZURE_OPENAI_API_KEY")  # Support Azure OpenAI
+            api_key
+            or os.getenv("OPENAI_API_KEY")
+            or os.getenv("OPENAI_KEY")
+            or os.getenv("AZURE_OPENAI_API_KEY")  # Support Azure OpenAI
         )
         self._client: Optional[Any] = None  # Will be OpenAI instance
 

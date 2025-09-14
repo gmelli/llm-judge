@@ -41,10 +41,10 @@ class AnthropicProvider(JudgeProvider):
         super().__init__(model, temperature, **kwargs)
         # Try multiple environment variable names for compatibility
         self.api_key = (
-            api_key or
-            os.getenv("ANTHROPIC_API_KEY") or
-            os.getenv("ANTHROPIC_KEY") or
-            os.getenv("CLAUDE_API_KEY")  # Alternative naming
+            api_key
+            or os.getenv("ANTHROPIC_API_KEY")
+            or os.getenv("ANTHROPIC_KEY")
+            or os.getenv("CLAUDE_API_KEY")  # Alternative naming
         )
         self._client: Optional[Any] = None  # Will be Anthropic instance
 
