@@ -46,7 +46,7 @@ class OpenAIProvider(JudgeProvider):
             os.getenv("OPENAI_KEY") or
             os.getenv("AZURE_OPENAI_API_KEY")  # Support Azure OpenAI
         )
-        self._client = None
+        self._client: Optional[Any] = None  # Will be OpenAI instance
 
     @property
     def client(self) -> Any:

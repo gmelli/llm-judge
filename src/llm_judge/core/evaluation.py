@@ -477,7 +477,7 @@ class ComparisonEvaluator:
             if isinstance(orig_score.value, (int, float)) and isinstance(
                 mod_score.value, (int, float)
             ):
-                delta = mod_score.value - orig_score.value
+                delta = mod_score.value - orig_score.value  # type: ignore[assignment]
 
             property_deltas[prop_name] = {
                 "delta": delta,

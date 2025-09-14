@@ -46,7 +46,7 @@ class AnthropicProvider(JudgeProvider):
             os.getenv("ANTHROPIC_KEY") or
             os.getenv("CLAUDE_API_KEY")  # Alternative naming
         )
-        self._client = None
+        self._client: Optional[Any] = None  # Will be Anthropic instance
 
     @property
     def client(self) -> Any:

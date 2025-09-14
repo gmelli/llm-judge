@@ -223,12 +223,12 @@ class MockProvider(JudgeProvider):
         word_count = len(content.split())
 
         # Base quality from model profile
-        base_quality = self.model_profile["quality"]
+        base_quality: float = self.model_profile["quality"]  # type: ignore[assignment]
 
         # Evaluate each property
         property_scores = {}
-        total_weight = 0
-        weighted_score = 0
+        total_weight: float = 0
+        weighted_score: float = 0
 
         for prop in category.characteristic_properties:
             # Simulate property evaluation with some intelligence
@@ -236,7 +236,7 @@ class MockProvider(JudgeProvider):
             property_scores[prop.name] = score
 
             # Weight the scores
-            weight = prop.weight if prop.weight else 1.0
+            weight = float(prop.weight) if prop.weight else 1.0
             total_weight += weight
             weighted_score += score * weight
 
@@ -248,14 +248,14 @@ class MockProvider(JudgeProvider):
 
         # Add quality-based noise unless deterministic
         if not self.config["deterministic"]:
-            noise = random.gauss(0, (1 - base_quality) * 0.1)
+            noise = random.gauss(0, (1 - base_quality) * 0.1)  # type: ignore[operator]
             overall_score = max(0, min(1, overall_score + noise))
 
         # Determine match based on threshold
         matches = overall_score > 0.5
 
         # Generate confidence based on model profile and score extremity
-        base_confidence = self.model_profile["typical_confidence"]
+        base_confidence: float = self.model_profile["typical_confidence"]  # type: ignore[assignment]
         if self.config["deterministic"]:
             confidence = base_confidence
         else:
@@ -290,7 +290,7 @@ class MockProvider(JudgeProvider):
         output_tokens = len(reasoning) // 4 + 50
         total_tokens = input_tokens + output_tokens
 
-        cost_per_1k = self.model_profile.get("cost_per_1k", 0.001)
+        cost_per_1k: float = self.model_profile.get("cost_per_1k", 0.001)  # type: ignore[assignment]
         total_cost = (total_tokens / 1000) * cost_per_1k
 
         # Create usage statistics
@@ -483,7 +483,7 @@ class MockProvider(JudgeProvider):
             "supports_streaming": False,
             "max_tokens": 4096,
             "cost_per_1k_tokens": self.model_profile.get("cost_per_1k", 0.001),
-            "quality_score": int(self.model_profile["quality"] * 100),
+            "quality_score": int(self.model_profile["quality"] * 100),  # type: ignore[operator]
             "speed": self.model_profile["speed"],
             "config": {
                 "response_delay": self.config["response_delay"],
