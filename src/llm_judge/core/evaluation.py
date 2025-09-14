@@ -388,7 +388,7 @@ class EvaluationEngine:
             + rubric_score * rubric_weight
         )
 
-        return min(1.0, max(0.0, membership))
+        return float(min(1.0, max(0.0, membership)))
 
     def _generate_feedback(
         self, property_scores: Dict[str, PropertyScore], membership_score: float

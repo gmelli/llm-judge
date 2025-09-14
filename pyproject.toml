@@ -124,17 +124,17 @@ ignore = ["E203", "E501"]
 
 [tool.mypy]
 python_version = "3.9"
-# Temporarily relaxed settings to unblock CI - Phase 1
-warn_return_any = false
-warn_unused_configs = false
+# Phase 2: Fixing real type issues
+warn_return_any = true
+warn_unused_configs = true
 ignore_missing_imports = true
-no_implicit_optional = false
-strict_optional = false
-check_untyped_defs = false
-disallow_untyped_defs = false
-disallow_any_generics = false
-warn_redundant_casts = false
-warn_unused_ignores = false
-allow_untyped_globals = true
-allow_redefinition = true
-no_warn_no_return = true
+no_implicit_optional = true
+strict_optional = true
+check_untyped_defs = true
+disallow_untyped_defs = false  # Will enable in Phase 3
+disallow_any_generics = false  # Will enable in Phase 4
+warn_redundant_casts = true
+warn_unused_ignores = true
+allow_untyped_globals = false
+allow_redefinition = false
+no_warn_no_return = false

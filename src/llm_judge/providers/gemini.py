@@ -117,12 +117,12 @@ class GeminiProvider(JudgeProvider):
 
         # Add response schema for structured output if requested
         if self.use_structured_output:
-            generation_config["response_mime_type"] = "application/json"
-            generation_config["response_schema"] = self._get_response_schema()
+            generation_config["response_mime_type"] = "application/json"  # type: ignore[assignment]
+            generation_config["response_schema"] = self._get_response_schema()  # type: ignore[assignment]
 
         self.client = genai.GenerativeModel(
             model_name=self.model,
-            generation_config=generation_config,
+            generation_config=generation_config,  # type: ignore[arg-type]
         )
 
     def _get_response_schema(self) -> Dict[str, Any]:
@@ -308,7 +308,8 @@ Return your evaluation as a JSON object with these fields:
         """
         # First, try to parse the entire text as JSON
         try:
-            return json.loads(text)
+            result: Dict[str, Any] = json.loads(text)
+            return result
         except json.JSONDecodeError:
             pass
 
@@ -320,7 +321,8 @@ Return your evaluation as a JSON object with these fields:
         matches = re.findall(json_block_pattern, text, re.DOTALL)
         for match in matches:
             try:
-                return json.loads(match)
+                parsed_json: Dict[str, Any] = json.loads(match)
+                return parsed_json
             except json.JSONDecodeError:
                 continue
 
@@ -330,7 +332,8 @@ Return your evaluation as a JSON object with these fields:
 
         for match in matches:
             try:
-                return json.loads(match)
+                parsed_obj: Dict[str, Any] = json.loads(match)
+                return parsed_obj
             except json.JSONDecodeError:
                 continue
 

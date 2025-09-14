@@ -210,14 +210,14 @@ class CostTracker:
         total_tokens = sum(c.total_tokens for c in self.current_session_costs)
 
         # Group by provider
-        by_provider: Any = defaultdict(lambda: {"count": 0, "cost": 0.0, "tokens": 0})  # type: ignore[var-annotated]
+        by_provider: Any = defaultdict(lambda: {"count": 0, "cost": 0.0, "tokens": 0})
         for cost in self.current_session_costs:
             by_provider[cost.provider]["count"] += 1
             by_provider[cost.provider]["cost"] += cost.total_cost
             by_provider[cost.provider]["tokens"] += cost.total_tokens
 
         # Group by model
-        by_model: Any = defaultdict(lambda: {"count": 0, "cost": 0.0, "tokens": 0})  # type: ignore[var-annotated]
+        by_model: Any = defaultdict(lambda: {"count": 0, "cost": 0.0, "tokens": 0})
         for cost in self.current_session_costs:
             by_model[cost.model]["count"] += 1
             by_model[cost.model]["cost"] += cost.total_cost
@@ -273,13 +273,13 @@ class CostTracker:
         }
 
         # Group by provider
-        by_provider: Any = defaultdict(lambda: {"count": 0, "cost": 0.0})  # type: ignore[var-annotated]
+        by_provider: Any = defaultdict(lambda: {"count": 0, "cost": 0.0})
         for cost in filtered_history:
             by_provider[cost.provider]["count"] += 1
             by_provider[cost.provider]["cost"] += cost.total_cost
 
         # Group by model
-        by_model: Any = defaultdict(lambda: {"count": 0, "cost": 0.0})  # type: ignore[var-annotated]
+        by_model: Any = defaultdict(lambda: {"count": 0, "cost": 0.0})
         for cost in filtered_history:
             by_model[cost.model]["count"] += 1
             by_model[cost.model]["cost"] += cost.total_cost
@@ -306,7 +306,7 @@ class CostTracker:
         recommendations = []
 
         # Analyze model usage
-        model_costs: Any = defaultdict(lambda: {"count": 0, "total_cost": 0.0})  # type: ignore[var-annotated]
+        model_costs: Any = defaultdict(lambda: {"count": 0, "total_cost": 0.0})
         for cost in self.history[-100:]:  # Last 100 evaluations
             model_costs[cost.model]["count"] += 1
             model_costs[cost.model]["total_cost"] += cost.total_cost

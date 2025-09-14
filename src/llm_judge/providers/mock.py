@@ -118,7 +118,7 @@ class MockProvider(JudgeProvider):
         elif "gemini" in model.lower() or "flash" in model.lower():
             return "gemini-1.5-flash"
         else:
-            return self.config["model_behavior"]
+            return str(self.config["model_behavior"])
 
     async def evaluate(
         self,
@@ -174,8 +174,8 @@ class MockProvider(JudgeProvider):
             "slow": 2.0,
         }
 
-        speed = self.model_profile.get("speed", "medium")
-        multiplier = speed_multipliers.get(speed, 1.0)
+        speed = str(self.model_profile.get("speed", "medium"))
+        multiplier = float(speed_multipliers.get(speed, 1.0))
 
         # Add some variability unless in deterministic mode
         if not self.config["deterministic"]:
@@ -187,7 +187,7 @@ class MockProvider(JudgeProvider):
         """Determine if this request should simulate a failure."""
         if self.config["deterministic"]:
             return False
-        return random.random() < self.config["failure_rate"]
+        return bool(random.random() < self.config["failure_rate"])
 
     def _create_error_result(self) -> ProviderResult:
         """Create a realistic error result."""
@@ -247,7 +247,7 @@ class MockProvider(JudgeProvider):
 
         # Add quality-based noise unless deterministic
         if not self.config["deterministic"]:
-            noise = random.gauss(0, (1 - base_quality) * 0.1)  # type: ignore[operator]
+            noise = random.gauss(0, (1 - base_quality) * 0.1)
             overall_score = max(0, min(1, overall_score + noise))
 
         # Determine match based on threshold

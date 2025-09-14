@@ -56,10 +56,10 @@ class Judge:
         if self.track_costs:
             self.cost_tracker = CostTracker(cost_history_file)
         else:
-            self.cost_tracker = None
+            self.cost_tracker = None  # type: ignore[assignment]
 
         # Set up providers
-        self.providers = self._setup_providers(provider, **kwargs)
+        self.providers = self._setup_providers(provider or "mock", **kwargs)
         self.consensus_mode = consensus_mode
 
         # Set up consensus judge if multiple providers
@@ -69,7 +69,7 @@ class Judge:
                 consensus_mode or ConsensusMode.MAJORITY,
             )
         else:
-            self.consensus_judge = None
+            self.consensus_judge = None  # type: ignore[assignment]
 
     def _setup_providers(
         self, provider: Union[str, JudgeProvider, List[JudgeProvider]], **kwargs
@@ -104,7 +104,10 @@ class Judge:
         try:
             module = __import__(module_path, fromlist=[class_name])
             provider_class = getattr(module, class_name)
-            return provider_class(temperature=self.temperature, **kwargs)
+            provider_instance: JudgeProvider = provider_class(
+                temperature=self.temperature, **kwargs
+            )
+            return provider_instance
         except (ImportError, AttributeError) as e:
             # Log the error for debugging
             import logging
@@ -122,7 +125,7 @@ class Judge:
         content: str,
         category: CategoryDefinition,
         return_feedback: bool = True,
-        use_cache: bool = None,
+        use_cache: Optional[bool] = None,
     ) -> EvaluationResult:
         """
         Evaluate content against a category.

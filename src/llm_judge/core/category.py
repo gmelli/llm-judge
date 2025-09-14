@@ -89,13 +89,13 @@ class CharacteristicProperty:
             False
         """
         if isinstance(self.threshold, Range):
-            return self.threshold.contains(value)
+            return bool(self.threshold.contains(value))
         elif isinstance(self.threshold, (int, float)):
-            return value >= self.threshold
+            return bool(value >= self.threshold)
         elif isinstance(self.threshold, bool):
-            return value == self.threshold
+            return bool(value == self.threshold)
         else:
-            return value == self.threshold
+            return bool(value == self.threshold)
 
 
 @dataclass
@@ -135,11 +135,11 @@ class EvaluationRubric:
             Weighted average score normalized to scale
         """
         if not scores:
-            return self.scale[0]
+            return float(self.scale[0])
 
         total_weight = sum(self.scoring_criteria.values())
         if total_weight == 0:
-            return self.scale[0]
+            return float(self.scale[0])
 
         weighted_sum = sum(
             scores.get(criterion, 0) * weight
@@ -148,7 +148,7 @@ class EvaluationRubric:
 
         # Normalize to scale
         raw_score = weighted_sum / total_weight
-        return self.scale[0] + raw_score * (self.scale[1] - self.scale[0])
+        return float(self.scale[0] + raw_score * (self.scale[1] - self.scale[0]))
 
 
 @dataclass

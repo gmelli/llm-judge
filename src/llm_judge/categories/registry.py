@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from typing import Dict, List, Optional
 
-import yaml  # type: ignore[import-untyped]
+import yaml
 
 from llm_judge.core.category import (
     CategoryDefinition,
