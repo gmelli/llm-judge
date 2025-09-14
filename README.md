@@ -11,7 +11,7 @@ A robust Python library for evaluating content using Large Language Models as ju
 ## Features
 
 - **Formal Category System**: Define categories with characteristic properties (necessary, sufficient, typical)
-- **Multi-Provider Support**: OpenAI, Anthropic, Google Gemini, and more
+- **Multi-Provider Support**: OpenAI GPT, Anthropic Claude, Google Gemini
 - **Consensus Mechanisms**: Multiple consensus modes (unanimous, majority, weighted, strict)
 - **Property-Based Evaluation**: Measure specific properties with custom functions
 - **Example-Based Learning**: Use positive and negative examples for better categorization

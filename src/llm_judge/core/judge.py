@@ -79,6 +79,7 @@ class Judge:
             "openai": "llm_judge.providers.openai.OpenAIProvider",
             "anthropic": "llm_judge.providers.anthropic.AnthropicProvider",
             "gemini": "llm_judge.providers.gemini.GeminiProvider",
+            "google": "llm_judge.providers.gemini.GeminiProvider",  # Alias
             "mock": "llm_judge.providers.mock.MockProvider",
         }
 
