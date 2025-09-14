@@ -87,7 +87,15 @@ class MockProvider(JudgeProvider):
             **kwargs: Additional provider arguments
         """
         super().__init__(model, temperature, **kwargs)
-        self.config = config or MockConfig()
+        self._mock_config = config or MockConfig()
+        # Keep self.config as dict for backward compatibility with type checker
+        self.config: Dict[str, Any] = {
+            "response_delay": self._mock_config.response_delay,
+            "failure_rate": self._mock_config.failure_rate,
+            "quality_mode": self._mock_config.quality_mode,
+            "model_behavior": self._mock_config.model_behavior,
+            "deterministic": self._mock_config.deterministic,
+        }
 
         # Determine which model to simulate
         self.simulated_model = self._get_simulated_model(model)
@@ -110,7 +118,7 @@ class MockProvider(JudgeProvider):
         elif "gemini" in model.lower() or "flash" in model.lower():
             return "gemini-1.5-flash"
         else:
-            return self.config.model_behavior
+            return self.config["model_behavior"]
 
     async def evaluate(
         self,
@@ -129,7 +137,7 @@ class MockProvider(JudgeProvider):
             Simulated ProviderResult with realistic scores and reasoning
         """
         # Check cache in deterministic mode
-        if self.config.deterministic:
+        if self.config["deterministic"]:
             cache_key = self._get_cache_key(content, category)
             if cache_key in self.response_cache:
                 return self.response_cache[cache_key]
@@ -145,7 +153,7 @@ class MockProvider(JudgeProvider):
         result = self._generate_evaluation(content, category, examples)
 
         # Cache in deterministic mode
-        if self.config.deterministic:
+        if self.config["deterministic"]:
             self.response_cache[cache_key] = result
 
         return result
@@ -157,7 +165,7 @@ class MockProvider(JudgeProvider):
 
     async def _simulate_delay(self):
         """Simulate realistic API delay based on model speed."""
-        base_delay = self.config.response_delay
+        base_delay = self.config["response_delay"]
 
         speed_multipliers = {
             "very-fast": 0.5,
@@ -170,16 +178,16 @@ class MockProvider(JudgeProvider):
         multiplier = speed_multipliers.get(speed, 1.0)
 
         # Add some variability unless in deterministic mode
-        if not self.config.deterministic:
+        if not self.config["deterministic"]:
             multiplier *= random.uniform(0.8, 1.2)
 
         await asyncio.sleep(base_delay * multiplier)
 
     async def _should_fail(self) -> bool:
         """Determine if this request should simulate a failure."""
-        if self.config.deterministic:
+        if self.config["deterministic"]:
             return False
-        return random.random() < self.config.failure_rate
+        return random.random() < self.config["failure_rate"]
 
     def _create_error_result(self) -> ProviderResult:
         """Create a realistic error result."""
@@ -239,7 +247,7 @@ class MockProvider(JudgeProvider):
             overall_score = 0.5
 
         # Add quality-based noise unless deterministic
-        if not self.config.deterministic:
+        if not self.config["deterministic"]:
             noise = random.gauss(0, (1 - base_quality) * 0.1)
             overall_score = max(0, min(1, overall_score + noise))
 
@@ -248,7 +256,7 @@ class MockProvider(JudgeProvider):
 
         # Generate confidence based on model profile and score extremity
         base_confidence = self.model_profile["typical_confidence"]
-        if self.config.deterministic:
+        if self.config["deterministic"]:
             confidence = base_confidence
         else:
             # Higher confidence for extreme scores
@@ -312,7 +320,7 @@ class MockProvider(JudgeProvider):
             feedback=feedback,
             metadata={
                 "simulated_model": self.simulated_model,
-                "quality_mode": self.config.quality_mode,
+                "quality_mode": self.config["quality_mode"],
                 "word_count": word_count,
             },
         )
@@ -354,7 +362,7 @@ class MockProvider(JudgeProvider):
 
         # Apply quality factor and add controlled randomness
         score = base_score * base_quality
-        if not self.config.deterministic:
+        if not self.config["deterministic"]:
             score += random.gauss(0, 0.1)
 
         return max(0, min(1, score))
@@ -397,7 +405,7 @@ class MockProvider(JudgeProvider):
             )
 
         # Add quality-specific insights
-        if self.config.quality_mode == "high":
+        if self.config["quality_mode"] == "high":
             word_count = len(content.split())
             reasoning_parts.append(
                 f"Content analysis shows {word_count} words with "
@@ -449,8 +457,8 @@ class MockProvider(JudgeProvider):
         results = []
 
         # Reduce delay for batch processing
-        original_delay = self.config.response_delay
-        self.config.response_delay = original_delay * 0.7
+        original_delay = self.config["response_delay"]
+        self.config["response_delay"] = original_delay * 0.7
 
         try:
             for content in contents:
@@ -458,7 +466,7 @@ class MockProvider(JudgeProvider):
                 results.append(result)
         finally:
             # Restore original delay
-            self.config.response_delay = original_delay
+            self.config["response_delay"] = original_delay
 
         return results
 
@@ -478,9 +486,9 @@ class MockProvider(JudgeProvider):
             "quality_score": int(self.model_profile["quality"] * 100),
             "speed": self.model_profile["speed"],
             "config": {
-                "response_delay": self.config.response_delay,
-                "failure_rate": self.config.failure_rate,
-                "quality_mode": self.config.quality_mode,
-                "deterministic": self.config.deterministic,
+                "response_delay": self.config["response_delay"],
+                "failure_rate": self.config["failure_rate"],
+                "quality_mode": self.config["quality_mode"],
+                "deterministic": self.config["deterministic"],
             },
         }
