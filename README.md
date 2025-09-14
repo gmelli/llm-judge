@@ -140,14 +140,20 @@ for content, result in zip(contents, results):
 
 ## Performance
 
-Based on extensive validation testing:
+Based on validation with synthetic test cases designed to test specific capabilities:
 
 - **Accuracy**: 82% on binary classification tasks
 - **Improvement**: +24% over word-overlap baseline
 - **Precision**: 100% on hallucination detection
 - **Cost**: $0.0001 per evaluation (Gemini 1.5 Flash)
 - **Speed**: 1-2 seconds per evaluation
-- **Validation**: [See full report](validation/FINAL_VALIDATION_REPORT.md)
+- **Dataset**: 100 synthetic test cases ([reproduce](examples/reproduce_validation.py))
+- **Full Report**: [Validation methodology and results](validation/FINAL_VALIDATION_REPORT.md)
+
+To reproduce these results:
+```bash
+python examples/reproduce_validation.py --provider gemini --num-samples 100
+```
 
 ## Category Types
 
