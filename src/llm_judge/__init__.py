@@ -4,21 +4,21 @@ LLM-as-Judge Library
 A robust framework for evaluating content using Large Language Models as judges.
 """
 
+from llm_judge.categories.registry import CategoryRegistry
 from llm_judge.core.category import (
     CategoryDefinition,
     CharacteristicProperty,
-    PropertyType,
-    Example,
     EvaluationRubric,
+    Example,
+    PropertyType,
 )
 from llm_judge.core.evaluation import (
+    ComparisonEvaluator,
+    ComparisonResult,
     EvaluationEngine,
     EvaluationResult,
-    ComparisonResult,
-    ComparisonEvaluator,
 )
 from llm_judge.core.judge import Judge
-from llm_judge.categories.registry import CategoryRegistry
 from llm_judge.providers.base import JudgeProvider, ProviderResult
 from llm_judge.utils.consensus import ConsensusJudge, ConsensusMode
 

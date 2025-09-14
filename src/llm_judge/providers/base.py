@@ -115,18 +115,14 @@ class JudgeProvider(ABC):
 
         return "\n".join(prompt_parts)
 
-    def _format_properties(
-        self, properties: List[Any]
-    ) -> str:
+    def _format_properties(self, properties: List[Any]) -> str:
         """Format characteristic properties for prompt."""
         formatted = []
         for prop in properties:
             formatted.append(f"- {prop.name}: {prop.formal_definition}")
         return "\n".join(formatted)
 
-    def _format_examples(
-        self, examples: List[Example]
-    ) -> str:
+    def _format_examples(self, examples: List[Example]) -> str:
         """Format examples for prompt."""
         formatted = []
         for i, ex in enumerate(examples, 1):

@@ -91,9 +91,10 @@ class Judge:
             module = __import__(module_path, fromlist=[class_name])
             provider_class = getattr(module, class_name)
             return provider_class(temperature=self.temperature, **kwargs)
-        except (ImportError, AttributeError) as e:
+        except (ImportError, AttributeError):
             # Fall back to mock provider if import fails
             from llm_judge.providers.mock import MockProvider
+
             return MockProvider(temperature=self.temperature, **kwargs)
 
     async def evaluate(
@@ -129,7 +130,8 @@ class Judge:
         else:
             # Single provider evaluation
             provider = (
-                self.providers[0] if isinstance(self.providers, list)
+                self.providers[0]
+                if isinstance(self.providers, list)
                 else self.providers
             )
 
@@ -168,10 +170,12 @@ class Judge:
             engine_result.feedback += f"\n\nLLM Assessment: {provider_result.reasoning}"
 
         # Update metadata
-        engine_result.metadata.update({
-            "provider_scores": provider_result.scores,
-            "tokens_used": provider_result.tokens_used,
-        })
+        engine_result.metadata.update(
+            {
+                "provider_scores": provider_result.scores,
+                "tokens_used": provider_result.tokens_used,
+            }
+        )
 
         return engine_result
 

@@ -131,21 +131,24 @@ class CategoryDefinition:
     def get_necessary_properties(self) -> List[CharacteristicProperty]:
         """Get all necessary properties for this category."""
         return [
-            prop for prop in self.characteristic_properties
+            prop
+            for prop in self.characteristic_properties
             if prop.property_type == PropertyType.NECESSARY
         ]
 
     def get_sufficient_properties(self) -> List[CharacteristicProperty]:
         """Get all sufficient properties for this category."""
         return [
-            prop for prop in self.characteristic_properties
+            prop
+            for prop in self.characteristic_properties
             if prop.property_type == PropertyType.SUFFICIENT
         ]
 
     def get_typical_properties(self) -> List[CharacteristicProperty]:
         """Get all typical properties for this category."""
         return [
-            prop for prop in self.characteristic_properties
+            prop
+            for prop in self.characteristic_properties
             if prop.property_type == PropertyType.TYPICAL
         ]
 

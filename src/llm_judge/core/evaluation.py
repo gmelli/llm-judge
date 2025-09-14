@@ -42,7 +42,8 @@ class EvaluationResult:
     def failed_properties(self) -> List[str]:
         """Get list of properties that failed to meet threshold."""
         return [
-            name for name, score in self.property_scores.items()
+            name
+            for name, score in self.property_scores.items()
             if not score.meets_threshold
         ]
 
@@ -50,7 +51,8 @@ class EvaluationResult:
     def passed_properties(self) -> List[str]:
         """Get list of properties that met threshold."""
         return [
-            name for name, score in self.property_scores.items()
+            name
+            for name, score in self.property_scores.items()
             if score.meets_threshold
         ]
 
@@ -92,7 +94,8 @@ class ComparisonResult:
     def improved_properties(self) -> List[str]:
         """Get list of properties that improved."""
         return [
-            prop for prop, delta in self.property_improvements.items()
+            prop
+            for prop, delta in self.property_improvements.items()
             if delta.get("improved", False)
         ]
 
@@ -100,7 +103,8 @@ class ComparisonResult:
     def regressed_properties(self) -> List[str]:
         """Get list of properties that regressed."""
         return [
-            prop for prop, delta in self.property_improvements.items()
+            prop
+            for prop, delta in self.property_improvements.items()
             if not delta.get("improved", True) and delta.get("delta", 0) < 0
         ]
 
@@ -108,7 +112,8 @@ class ComparisonResult:
     def missing_properties(self) -> List[str]:
         """Get list of properties still not meeting threshold."""
         return [
-            prop for prop, delta in self.property_improvements.items()
+            prop
+            for prop, delta in self.property_improvements.items()
             if not delta.get("meets_threshold", False)
         ]
 
@@ -120,9 +125,7 @@ class EvaluationEngine:
         self.cache = {}
         self.evaluation_history = []
 
-    def evaluate(
-        self, content: str, category: CategoryDefinition
-    ) -> EvaluationResult:
+    def evaluate(self, content: str, category: CategoryDefinition) -> EvaluationResult:
         """
         Evaluate content against a category definition.
 
@@ -187,7 +190,7 @@ class EvaluationEngine:
                     weight=prop.weight,
                     raw_score=1.0 if meets_threshold else 0.0,
                 )
-            except Exception as e:
+            except Exception:
                 # Handle measurement errors gracefully
                 property_scores[prop.name] = PropertyScore(
                     property_name=prop.name,
@@ -227,11 +230,13 @@ class EvaluationEngine:
             "top_similar": positive_similarities[:3],
             "positive_avg": (
                 sum(s for _, s in positive_similarities) / len(positive_similarities)
-                if positive_similarities else 0
+                if positive_similarities
+                else 0
             ),
             "negative_avg": (
                 sum(s for _, s in negative_similarities) / len(negative_similarities)
-                if negative_similarities else 0
+                if negative_similarities
+                else 0
             ),
         }
 
@@ -277,9 +282,10 @@ class EvaluationEngine:
         property_weight = 0.6
         total_property_weight = sum(ps.weight for ps in property_scores.values())
         if total_property_weight > 0:
-            property_score = sum(
-                ps.raw_score * ps.weight for ps in property_scores.values()
-            ) / total_property_weight
+            property_score = (
+                sum(ps.raw_score * ps.weight for ps in property_scores.values())
+                / total_property_weight
+            )
         else:
             property_score = 0.0
 
@@ -319,18 +325,14 @@ class EvaluationEngine:
 
         # Property feedback
         failed_props = [
-            name for name, score in property_scores.items()
-            if not score.meets_threshold
+            name for name, score in property_scores.items() if not score.meets_threshold
         ]
 
         if failed_props:
-            feedback_parts.append(
-                f"Failed properties: {', '.join(failed_props)}"
-            )
+            feedback_parts.append(f"Failed properties: {', '.join(failed_props)}")
 
         passed_props = [
-            name for name, score in property_scores.items()
-            if score.meets_threshold
+            name for name, score in property_scores.items() if score.meets_threshold
         ]
 
         if passed_props:
@@ -383,8 +385,11 @@ class ComparisonEvaluator:
 
             property_deltas[prop_name] = {
                 "delta": delta,
-                "improved": mod_score.meets_threshold and not orig_score.meets_threshold,
-                "significant": abs(delta) > 0.1 if isinstance(delta, float) else delta != 0,
+                "improved": mod_score.meets_threshold
+                and not orig_score.meets_threshold,
+                "significant": abs(delta) > 0.1
+                if isinstance(delta, float)
+                else delta != 0,
                 "meets_threshold": mod_score.meets_threshold,
                 "original_value": orig_score.value,
                 "modified_value": mod_score.value,
@@ -396,7 +401,8 @@ class ComparisonEvaluator:
         )
 
         return ComparisonResult(
-            overall_improvement=modified_eval.membership_score > original_eval.membership_score,
+            overall_improvement=modified_eval.membership_score
+            > original_eval.membership_score,
             property_improvements=property_deltas,
             recommendation=recommendation,
             original_score=original_eval.membership_score,

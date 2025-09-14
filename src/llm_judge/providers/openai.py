@@ -30,12 +30,13 @@ class OpenAIProvider(JudgeProvider):
         if self._client is None:
             try:
                 import openai
+
                 self._client = openai.OpenAI(api_key=self.api_key)
-            except ImportError:
+            except ImportError as e:
                 raise ImportError(
                     "OpenAI provider requires 'openai' package. "
                     "Install with: pip install llm-judge[providers]"
-                )
+                ) from e
         return self._client
 
     async def evaluate(

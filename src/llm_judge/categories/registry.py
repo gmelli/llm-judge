@@ -11,8 +11,8 @@ import yaml
 from llm_judge.core.category import (
     CategoryDefinition,
     CharacteristicProperty,
-    Example,
     EvaluationRubric,
+    Example,
     PropertyType,
     Range,
 )
@@ -42,7 +42,10 @@ class CategoryRegistry:
                     name="citation_density",
                     property_type=PropertyType.NECESSARY,
                     formal_definition="Number of citations per 100 words >= 2",
-                    measurement_function=lambda c: len([w for w in c.split() if w.startswith("[")]) / (len(c.split()) / 100),
+                    measurement_function=lambda c: len(
+                        [w for w in c.split() if w.startswith("[")]
+                    )
+                    / (len(c.split()) / 100),
                     threshold=2.0,
                     weight=1.5,
                 ),
@@ -141,10 +144,9 @@ class CategoryRegistry:
         """
         # Support dot notation (e.g., "wiki.stub_article")
         if "." in name:
-            parts = name.split(".")
-            base_name = parts[0]
             # For now, just look for the full name
             # In a full implementation, this would traverse a hierarchy
+            pass
 
         return self.categories.get(name)
 
@@ -159,7 +161,7 @@ class CategoryRegistry:
         Args:
             path: Path to YAML file
         """
-        with open(path, "r") as f:
+        with open(path) as f:
             data = yaml.safe_load(f)
 
         for cat_name, cat_data in data.items():
@@ -173,7 +175,7 @@ class CategoryRegistry:
         Args:
             path: Path to JSON file
         """
-        with open(path, "r") as f:
+        with open(path) as f:
             data = json.load(f)
 
         for cat_name, cat_data in data.items():
@@ -190,10 +192,7 @@ class CategoryRegistry:
             # Parse threshold
             threshold = prop_data.get("threshold", 0.5)
             if isinstance(threshold, dict):
-                threshold = Range(
-                    min=threshold.get("min"),
-                    max=threshold.get("max")
-                )
+                threshold = Range(min=threshold.get("min"), max=threshold.get("max"))
 
             properties.append(
                 CharacteristicProperty(

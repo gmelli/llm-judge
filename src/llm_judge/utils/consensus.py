@@ -58,10 +58,9 @@ class ConsensusJudge:
             Consensus EvaluationResult
         """
         # Get evaluations from all providers
-        evaluations = await asyncio.gather(*[
-            provider.evaluate(content, category)
-            for provider in self.providers
-        ])
+        evaluations = await asyncio.gather(
+            *[provider.evaluate(content, category) for provider in self.providers]
+        )
 
         # Apply consensus strategy
         if self.consensus_mode == ConsensusMode.UNANIMOUS:
@@ -85,7 +84,8 @@ class ConsensusJudge:
         # Average confidence only if all agree
         avg_confidence = (
             sum(eval.confidence for eval in evaluations) / len(evaluations)
-            if all_match else 0.0
+            if all_match
+            else 0.0
         )
 
         # Combine scores
@@ -109,7 +109,7 @@ class ConsensusJudge:
                 "consensus_mode": "unanimous",
                 "num_judges": len(evaluations),
                 "agreement": all_match,
-            }
+            },
         )
 
     def _majority_vote(
@@ -146,7 +146,7 @@ class ConsensusJudge:
                 "num_judges": len(evaluations),
                 "positive_votes": positive_votes,
                 "agreement": matches,
-            }
+            },
         )
 
     def _weighted_average(
@@ -156,15 +156,21 @@ class ConsensusJudge:
         # Calculate weighted scores
         total_weight = sum(self.weights)
 
-        weighted_match_score = sum(
-            (1.0 if eval.category_match else 0.0) * weight
-            for eval, weight in zip(evaluations, self.weights)
-        ) / total_weight
+        weighted_match_score = (
+            sum(
+                (1.0 if eval.category_match else 0.0) * weight
+                for eval, weight in zip(evaluations, self.weights)
+            )
+            / total_weight
+        )
 
-        weighted_confidence = sum(
-            eval.confidence * weight
-            for eval, weight in zip(evaluations, self.weights)
-        ) / total_weight
+        weighted_confidence = (
+            sum(
+                eval.confidence * weight
+                for eval, weight in zip(evaluations, self.weights)
+            )
+            / total_weight
+        )
 
         # Combine scores with weights
         combined_scores = self._combine_scores(evaluations, use_weights=True)
@@ -186,7 +192,7 @@ class ConsensusJudge:
                 "consensus_mode": "weighted",
                 "num_judges": len(evaluations),
                 "weights": self.weights,
-            }
+            },
         )
 
     def _strict_consensus(
@@ -222,19 +228,17 @@ class ConsensusJudge:
                 "num_judges": len(evaluations),
                 "agreement_ratio": agreement_ratio,
                 "agreement": matches,
-            }
+            },
         )
 
-    def _combine_scores(
-        self, evaluations: List, use_weights: bool = False
-    ) -> dict:
+    def _combine_scores(self, evaluations: List, use_weights: bool = False) -> dict:
         """Combine property scores from multiple evaluations."""
         combined = {}
 
         # Collect all property names
         all_properties = set()
         for eval in evaluations:
-            if hasattr(eval, 'scores') and eval.scores:
+            if hasattr(eval, "scores") and eval.scores:
                 all_properties.update(eval.scores.keys())
 
         # Average scores for each property
@@ -243,7 +247,7 @@ class ConsensusJudge:
             weights_to_use = []
 
             for i, eval in enumerate(evaluations):
-                if hasattr(eval, 'scores') and prop in eval.scores:
+                if hasattr(eval, "scores") and prop in eval.scores:
                     scores.append(eval.scores[prop])
                     if use_weights:
                         weights_to_use.append(self.weights[i])
@@ -252,7 +256,9 @@ class ConsensusJudge:
 
             if scores:
                 if use_weights:
-                    avg_score = sum(s * w for s, w in zip(scores, weights_to_use)) / sum(weights_to_use)
+                    avg_score = sum(
+                        s * w for s, w in zip(scores, weights_to_use)
+                    ) / sum(weights_to_use)
                 else:
                     avg_score = sum(scores) / len(scores)
 

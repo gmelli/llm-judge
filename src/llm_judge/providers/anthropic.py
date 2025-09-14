@@ -30,12 +30,13 @@ class AnthropicProvider(JudgeProvider):
         if self._client is None:
             try:
                 import anthropic
+
                 self._client = anthropic.Anthropic(api_key=self.api_key)
-            except ImportError:
+            except ImportError as e:
                 raise ImportError(
                     "Anthropic provider requires 'anthropic' package. "
                     "Install with: pip install llm-judge[providers]"
-                )
+                ) from e
         return self._client
 
     async def evaluate(
@@ -75,9 +76,7 @@ Please provide your evaluation as a JSON object with this structure:
                 model=self.model,
                 max_tokens=1000,
                 temperature=self.temperature,
-                messages=[
-                    {"role": "user", "content": json_prompt}
-                ],
+                messages=[{"role": "user", "content": json_prompt}],
             )
 
             # Extract JSON from response
@@ -100,7 +99,11 @@ Please provide your evaluation as a JSON object with this structure:
                 }
 
             # Calculate token usage and cost
-            tokens_used = response.usage.input_tokens + response.usage.output_tokens if hasattr(response, 'usage') else 0
+            tokens_used = (
+                response.usage.input_tokens + response.usage.output_tokens
+                if hasattr(response, "usage")
+                else 0
+            )
             cost = self._calculate_cost(tokens_used)
 
             return ProviderResult(

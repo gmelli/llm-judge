@@ -3,16 +3,16 @@
 from llm_judge.core.category import (
     CategoryDefinition,
     CharacteristicProperty,
-    PropertyType,
-    Example,
     EvaluationRubric,
+    Example,
+    PropertyType,
     Range,
 )
 from llm_judge.core.evaluation import (
+    ComparisonEvaluator,
+    ComparisonResult,
     EvaluationEngine,
     EvaluationResult,
-    ComparisonResult,
-    ComparisonEvaluator,
     PropertyScore,
 )
 from llm_judge.core.judge import Judge
