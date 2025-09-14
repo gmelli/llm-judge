@@ -4,14 +4,21 @@ OpenAI provider implementation for LLM-as-Judge.
 
 import json
 import os
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from llm_judge.core.category import CategoryDefinition, Example
 from llm_judge.providers.base import JudgeProvider, ProviderResult
 
 
 class OpenAIProvider(JudgeProvider):
-    """OpenAI GPT-based judge provider."""
+    """OpenAI GPT-based judge provider.
+
+    Integrates with OpenAI's GPT models to provide LLM-as-Judge evaluations.
+    Supports structured JSON output and includes cost estimation based on
+    token usage.
+
+    Requires the 'openai' package and a valid OpenAI API key.
+    """
 
     def __init__(
         self,
@@ -20,13 +27,31 @@ class OpenAIProvider(JudgeProvider):
         api_key: Optional[str] = None,
         **kwargs,
     ):
+        """Initialize OpenAI provider.
+
+        Args:
+            model: OpenAI model to use (default "gpt-4-turbo-preview").
+            temperature: Sampling temperature for generation.
+            api_key: OpenAI API key. If None, reads from OPENAI_API_KEY env var.
+            **kwargs: Additional configuration parameters.
+
+        Raises:
+            ImportError: If the 'openai' package is not installed.
+        """
         super().__init__(model, temperature, **kwargs)
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         self._client = None
 
     @property
-    def client(self):
-        """Lazy load OpenAI client."""
+    def client(self) -> Any:
+        """Lazy load OpenAI client.
+
+        Returns:
+            Configured OpenAI client instance.
+
+        Raises:
+            ImportError: If the 'openai' package is not available.
+        """
         if self._client is None:
             try:
                 import openai

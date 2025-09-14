@@ -72,7 +72,11 @@ class CategoryRegistry:
         self.register(academic)
 
     def _add_technical_categories(self):
-        """Add technical documentation categories."""
+        """Add technical documentation categories.
+
+        Creates a category for technical documentation with properties
+        for code blocks and technical vocabulary density.
+        """
         technical = CategoryDefinition(
             name="technical_documentation",
             description="Technical documentation with code examples and precise language",
@@ -151,7 +155,11 @@ class CategoryRegistry:
         return self.categories.get(name)
 
     def list_categories(self) -> List[str]:
-        """List all registered category names."""
+        """List all registered category names.
+
+        Returns:
+            List of category name strings currently in the registry.
+        """
         return list(self.categories.keys())
 
     def load_from_yaml(self, path: Path) -> None:

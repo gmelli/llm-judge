@@ -12,7 +12,17 @@ from llm_judge.providers.base import JudgeProvider
 
 
 class ConsensusMode(Enum):
-    """Modes for reaching consensus among multiple judges."""
+    """Modes for reaching consensus among multiple judges.
+
+    Defines different strategies for combining evaluations from multiple
+    LLM providers into a single consensus result.
+
+    Attributes:
+        UNANIMOUS: All judges must agree for positive classification.
+        MAJORITY: Simple majority vote determines the result.
+        WEIGHTED: Weighted average based on provider weights.
+        STRICT: Requires at least 75% agreement for positive classification.
+    """
 
     UNANIMOUS = "unanimous"  # All judges must agree
     MAJORITY = "majority"  # Simple majority
@@ -21,7 +31,17 @@ class ConsensusMode(Enum):
 
 
 class ConsensusJudge:
-    """Handles consensus among multiple LLM judges."""
+    """Handles consensus among multiple LLM judges.
+
+    This class orchestrates evaluations across multiple LLM providers and
+    combines their results using various consensus strategies. It enables
+    more robust evaluations by leveraging the strengths of different models.
+
+    Attributes:
+        providers: List of JudgeProvider instances to use for evaluations.
+        consensus_mode: Strategy for reaching consensus among providers.
+        weights: Optional weights for each provider in weighted consensus.
+    """
 
     def __init__(
         self,
@@ -77,7 +97,16 @@ class ConsensusJudge:
     def _unanimous_consensus(
         self, evaluations: List, category: CategoryDefinition
     ) -> EvaluationResult:
-        """All judges must agree for positive classification."""
+        """All judges must agree for positive classification.
+
+        Args:
+            evaluations: List of ProviderResult objects from different judges.
+            category: The category definition being evaluated against.
+
+        Returns:
+            EvaluationResult with membership_score of 1.0 if all agree,
+            0.0 otherwise. Confidence is averaged only if all agree.
+        """
         # Check if all agree on category match
         all_match = all(eval.category_match for eval in evaluations)
 
@@ -115,7 +144,16 @@ class ConsensusJudge:
     def _majority_vote(
         self, evaluations: List, category: CategoryDefinition
     ) -> EvaluationResult:
-        """Simple majority determines classification."""
+        """Simple majority determines classification.
+
+        Args:
+            evaluations: List of ProviderResult objects from different judges.
+            category: The category definition being evaluated against.
+
+        Returns:
+            EvaluationResult with membership_score equal to the proportion
+            of positive votes. Classification is positive if > 50% vote yes.
+        """
         # Count votes
         positive_votes = sum(1 for eval in evaluations if eval.category_match)
         majority_threshold = len(evaluations) / 2
@@ -232,7 +270,16 @@ class ConsensusJudge:
         )
 
     def _combine_scores(self, evaluations: List, use_weights: bool = False) -> dict:
-        """Combine property scores from multiple evaluations."""
+        """Combine property scores from multiple evaluations.
+
+        Args:
+            evaluations: List of ProviderResult objects with scores.
+            use_weights: Whether to apply provider weights when averaging.
+
+        Returns:
+            Dictionary mapping property names to combined PropertyScore objects.
+            Scores are averaged across all providers that evaluated each property.
+        """
         combined = {}
 
         # Collect all property names

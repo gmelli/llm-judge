@@ -11,7 +11,22 @@ from llm_judge.core.category import CategoryDefinition, Example
 
 @dataclass
 class ProviderResult:
-    """Result from an LLM provider evaluation."""
+    """Result from an LLM provider evaluation.
+
+    Contains the LLM's assessment of content against a category definition,
+    including confidence scores, reasoning, and usage metrics.
+
+    Attributes:
+        category_match: Whether the LLM determined the content matches the category.
+        confidence: LLM's confidence in its assessment (0.0-1.0).
+        scores: Dictionary of scores for individual properties.
+        reasoning: LLM's explanation for its decision.
+        raw_response: The complete raw response from the LLM.
+        model: Name/identifier of the model used.
+        tokens_used: Number of tokens consumed in the evaluation.
+        cost: Estimated cost of the evaluation in USD.
+        metadata: Additional provider-specific information.
+    """
 
     category_match: bool
     confidence: float
@@ -25,9 +40,26 @@ class ProviderResult:
 
 
 class JudgeProvider(ABC):
-    """Abstract base class for LLM judge providers."""
+    """Abstract base class for LLM judge providers.
+
+    This class defines the interface that all LLM provider implementations
+    must follow. Providers wrap specific LLM APIs (OpenAI, Anthropic, etc.)
+    and provide consistent evaluation functionality.
+
+    Attributes:
+        model: The model identifier/name to use for evaluations.
+        temperature: Sampling temperature for LLM generation (0.0-1.0).
+        config: Additional configuration parameters passed during initialization.
+    """
 
     def __init__(self, model: str, temperature: float = 0.1, **kwargs):
+        """Initialize the judge provider.
+
+        Args:
+            model: The model identifier to use for evaluations.
+            temperature: Sampling temperature for generation (default 0.1 for determinism).
+            **kwargs: Additional provider-specific configuration parameters.
+        """
         self.model = model
         self.temperature = temperature
         self.config = kwargs
@@ -116,14 +148,29 @@ class JudgeProvider(ABC):
         return "\n".join(prompt_parts)
 
     def _format_properties(self, properties: List[Any]) -> str:
-        """Format characteristic properties for prompt."""
+        """Format characteristic properties for prompt.
+
+        Args:
+            properties: List of CharacteristicProperty objects to format.
+
+        Returns:
+            Multi-line string with formatted property definitions.
+        """
         formatted = []
         for prop in properties:
             formatted.append(f"- {prop.name}: {prop.formal_definition}")
         return "\n".join(formatted)
 
     def _format_examples(self, examples: List[Example]) -> str:
-        """Format examples for prompt."""
+        """Format examples for prompt.
+
+        Args:
+            examples: List of Example objects to format for the prompt.
+
+        Returns:
+            Multi-line string with formatted examples, including content
+            and annotations. Long content is truncated to 500 characters.
+        """
         formatted = []
         for i, ex in enumerate(examples, 1):
             # Truncate long examples

@@ -4,14 +4,21 @@ Anthropic Claude provider implementation for LLM-as-Judge.
 
 import json
 import os
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from llm_judge.core.category import CategoryDefinition, Example
 from llm_judge.providers.base import JudgeProvider, ProviderResult
 
 
 class AnthropicProvider(JudgeProvider):
-    """Anthropic Claude-based judge provider."""
+    """Anthropic Claude-based judge provider.
+
+    Integrates with Anthropic's Claude models to provide LLM-as-Judge evaluations.
+    Handles JSON parsing from Claude's responses and includes cost estimation
+    based on token usage.
+
+    Requires the 'anthropic' package and a valid Anthropic API key.
+    """
 
     def __init__(
         self,
@@ -20,13 +27,31 @@ class AnthropicProvider(JudgeProvider):
         api_key: Optional[str] = None,
         **kwargs,
     ):
+        """Initialize Anthropic provider.
+
+        Args:
+            model: Claude model to use (default "claude-3-opus-20240229").
+            temperature: Sampling temperature for generation.
+            api_key: Anthropic API key. If None, reads from ANTHROPIC_API_KEY env var.
+            **kwargs: Additional configuration parameters.
+
+        Raises:
+            ImportError: If the 'anthropic' package is not installed.
+        """
         super().__init__(model, temperature, **kwargs)
         self.api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
         self._client = None
 
     @property
-    def client(self):
-        """Lazy load Anthropic client."""
+    def client(self) -> Any:
+        """Lazy load Anthropic client.
+
+        Returns:
+            Configured Anthropic client instance.
+
+        Raises:
+            ImportError: If the 'anthropic' package is not available.
+        """
         if self._client is None:
             try:
                 import anthropic

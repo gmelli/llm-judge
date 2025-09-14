@@ -11,7 +11,14 @@ from llm_judge.providers.base import JudgeProvider, ProviderResult
 
 
 class GeminiProvider(JudgeProvider):
-    """Google Gemini-based judge provider."""
+    """Google Gemini-based judge provider.
+
+    Integrates with Google's Gemini models to provide LLM-as-Judge evaluations.
+    Handles JSON parsing from Gemini responses and provides cost estimation
+    based on character/token usage.
+
+    Requires the 'google-generativeai' package and a valid Google API key.
+    """
 
     def __init__(
         self,
@@ -20,13 +27,31 @@ class GeminiProvider(JudgeProvider):
         api_key: Optional[str] = None,
         **kwargs: Any,
     ):
+        """Initialize Gemini provider.
+
+        Args:
+            model: Gemini model to use (default "gemini-1.5-pro").
+            temperature: Sampling temperature for generation.
+            api_key: Google API key. If None, reads from GOOGLE_API_KEY env var.
+            **kwargs: Additional configuration parameters.
+
+        Raises:
+            ImportError: If the 'google-generativeai' package is not installed.
+        """
         super().__init__(model, temperature, **kwargs)
         self.api_key = api_key or os.getenv("GOOGLE_API_KEY")
         self._client: Optional[Any] = None
 
     @property
     def client(self) -> Any:
-        """Lazy load Google Generative AI client."""
+        """Lazy load Google Generative AI client.
+
+        Returns:
+            Configured Google GenerativeModel instance.
+
+        Raises:
+            ImportError: If the 'google-generativeai' package is not available.
+        """
         if self._client is None:
             try:
                 import google.generativeai as genai

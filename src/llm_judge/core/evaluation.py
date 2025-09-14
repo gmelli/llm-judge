@@ -35,12 +35,21 @@ class EvaluationResult:
 
     @property
     def matches_category(self) -> bool:
-        """Check if content matches the category (membership_score > 0.5)."""
+        """Check if content matches the category (membership_score > 0.5).
+
+        Returns:
+            True if the membership score is greater than 0.5, indicating the
+            content likely belongs to the category.
+        """
         return self.membership_score > 0.5
 
     @property
     def failed_properties(self) -> List[str]:
-        """Get list of properties that failed to meet threshold."""
+        """Get list of properties that failed to meet threshold.
+
+        Returns:
+            List of property names that did not meet their threshold requirements.
+        """
         return [
             name
             for name, score in self.property_scores.items()
@@ -49,7 +58,11 @@ class EvaluationResult:
 
     @property
     def passed_properties(self) -> List[str]:
-        """Get list of properties that met threshold."""
+        """Get list of properties that met threshold.
+
+        Returns:
+            List of property names that successfully met their threshold requirements.
+        """
         return [
             name
             for name, score in self.property_scores.items()
@@ -57,7 +70,12 @@ class EvaluationResult:
         ]
 
     def generate_improvement_suggestions(self) -> str:
-        """Generate suggestions for improving category membership."""
+        """Generate suggestions for improving category membership.
+
+        Returns:
+            A formatted string with actionable suggestions for improving
+            category membership, or a confirmation if all requirements are met.
+        """
         suggestions = []
 
         for prop_name, score in self.property_scores.items():
@@ -119,9 +137,22 @@ class ComparisonResult:
 
 
 class EvaluationEngine:
-    """Main evaluation engine for assessing content against categories."""
+    """Main evaluation engine for assessing content against categories.
+
+    This engine provides the core functionality for evaluating content against
+    category definitions using characteristic properties, example similarity,
+    and evaluation rubrics.
+
+    Attributes:
+        cache: Dictionary for caching evaluation results.
+        evaluation_history: List of all evaluation results for analysis.
+    """
 
     def __init__(self):
+        """Initialize the evaluation engine.
+
+        Sets up empty cache and evaluation history tracking.
+        """
         self.cache = {}
         self.evaluation_history = []
 
@@ -175,7 +206,16 @@ class EvaluationEngine:
     def _measure_properties(
         self, content: str, category: CategoryDefinition
     ) -> Dict[str, PropertyScore]:
-        """Measure all characteristic properties for the content."""
+        """Measure all characteristic properties for the content.
+
+        Args:
+            content: The text content to evaluate.
+            category: Category definition containing properties to measure.
+
+        Returns:
+            Dictionary mapping property names to PropertyScore objects.
+            Failed measurements are recorded with null values and zero scores.
+        """
         property_scores = {}
 
         for prop in category.characteristic_properties:
@@ -208,7 +248,23 @@ class EvaluationEngine:
         positive_examples: List[Example],
         negative_examples: List[Example],
     ) -> Dict[str, Any]:
-        """Compute similarity between content and examples."""
+        """Compute similarity between content and examples.
+
+        Args:
+            content: The text content to compare against examples.
+            positive_examples: Examples that belong to the target category.
+            negative_examples: Examples that do not belong to the target category.
+
+        Returns:
+            Dictionary containing:
+                - top_similar: Top 3 most similar positive examples with scores
+                - positive_avg: Average similarity to positive examples
+                - negative_avg: Average similarity to negative examples
+
+        Note:
+            Uses simple word-overlap similarity. In production, this would use
+            embeddings or more sophisticated similarity measures.
+        """
         # Simplified similarity computation
         # In production, this would use embeddings or more sophisticated methods
 
@@ -241,7 +297,21 @@ class EvaluationEngine:
         }
 
     def _simple_similarity(self, text1: str, text2: str) -> float:
-        """Simple text similarity based on word overlap."""
+        """Simple text similarity based on word overlap.
+
+        Args:
+            text1: First text string to compare.
+            text2: Second text string to compare.
+
+        Returns:
+            Jaccard similarity coefficient (0.0 to 1.0) based on word overlap.
+            Returns 0.0 if either text is empty.
+
+        Examples:
+            >>> engine = EvaluationEngine()
+            >>> engine._simple_similarity("hello world", "hello there")
+            0.33333...  # 1 common word out of 3 total unique words
+        """
         words1 = set(text1.lower().split())
         words2 = set(text2.lower().split())
 
@@ -256,7 +326,20 @@ class EvaluationEngine:
     def _evaluate_criteria(
         self, content: str, category: CategoryDefinition
     ) -> Dict[str, float]:
-        """Evaluate individual rubric criteria."""
+        """Evaluate individual rubric criteria.
+
+        Args:
+            content: The text content to evaluate.
+            category: Category definition containing evaluation rubric.
+
+        Returns:
+            Dictionary mapping criterion names to scores (0.0-1.0).
+            Returns empty dict if no rubric is defined.
+
+        Note:
+            Current implementation returns placeholder scores.
+            In production, this would call specific evaluators for each criterion.
+        """
         # This would be implemented based on specific criteria
         # For now, return placeholder scores
         if not category.evaluation_rubric:
@@ -345,9 +428,22 @@ class EvaluationEngine:
 
 
 class ComparisonEvaluator:
-    """Evaluator for comparing content before and after modifications."""
+    """Evaluator for comparing content before and after modifications.
+
+    This class provides functionality to compare two versions of content
+    (original vs. modified) against the same category to determine improvements
+    or regressions in category membership.
+
+    Attributes:
+        engine: EvaluationEngine instance used for individual evaluations.
+    """
 
     def __init__(self, engine: Optional[EvaluationEngine] = None):
+        """Initialize the comparison evaluator.
+
+        Args:
+            engine: Optional EvaluationEngine instance. If None, creates a new one.
+        """
         self.engine = engine or EvaluationEngine()
 
     def compare_before_after(

@@ -10,9 +10,27 @@ from llm_judge.providers.base import JudgeProvider, ProviderResult
 
 
 class MockProvider(JudgeProvider):
-    """Mock LLM provider for testing."""
+    """Mock LLM provider for testing and development.
+
+    Provides deterministic or random evaluations without calling external APIs.
+    Useful for testing, development, and demonstrations without incurring costs
+    or requiring API keys.
+
+    The provider can be configured to always match, always fail, or provide
+    random evaluations based on simple heuristics.
+    """
 
     def __init__(self, model: str = "mock-model", temperature: float = 0.1, **kwargs):
+        """Initialize mock provider with configurable behavior.
+
+        Args:
+            model: Mock model identifier (default "mock-model").
+            temperature: Sampling temperature (ignored for mock).
+            always_match: If True, always returns positive category matches.
+            always_fail: If True, always returns negative category matches.
+            random_seed: Optional seed for reproducible random evaluations.
+            **kwargs: Additional configuration parameters.
+        """
         super().__init__(model, temperature, **kwargs)
         self.always_match = kwargs.get("always_match", False)
         self.always_fail = kwargs.get("always_fail", False)

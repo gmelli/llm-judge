@@ -23,7 +23,21 @@ class Range:
     max: Optional[float] = None
 
     def contains(self, value: float) -> bool:
-        """Check if a value is within the range."""
+        """Check if a value is within the range.
+
+        Args:
+            value: The value to check against the range bounds.
+
+        Returns:
+            True if the value is within the range (inclusive), False otherwise.
+
+        Examples:
+            >>> range_obj = Range(min=0.0, max=1.0)
+            >>> range_obj.contains(0.5)
+            True
+            >>> range_obj.contains(1.5)
+            False
+        """
         if self.min is not None and value < self.min:
             return False
         if self.max is not None and value > self.max:
@@ -45,11 +59,35 @@ class CharacteristicProperty:
     weight: float = 1.0  # Importance in category determination
 
     def measure(self, content: str) -> Any:
-        """Measure the property value for given content."""
+        """Measure the property value for given content.
+
+        Args:
+            content: The text content to measure the property on.
+
+        Returns:
+            The measured property value, type depends on the measurement function.
+
+        Raises:
+            Exception: If the measurement function fails to execute.
+        """
         return self.measurement_function(content)
 
     def meets_threshold(self, value: Any) -> bool:
-        """Check if a value meets the threshold requirement."""
+        """Check if a value meets the threshold requirement.
+
+        Args:
+            value: The measured property value to check.
+
+        Returns:
+            True if the value meets the threshold requirements, False otherwise.
+
+        Examples:
+            >>> prop = CharacteristicProperty(name="test", threshold=0.5, ...)
+            >>> prop.meets_threshold(0.7)  # Value >= threshold
+            True
+            >>> prop.meets_threshold(0.3)
+            False
+        """
         if isinstance(self.threshold, Range):
             return self.threshold.contains(value)
         elif isinstance(self.threshold, (int, float)):
@@ -129,7 +167,12 @@ class CategoryDefinition:
     metadata: Dict[str, Any] = field(default_factory=dict)  # Additional info
 
     def get_necessary_properties(self) -> List[CharacteristicProperty]:
-        """Get all necessary properties for this category."""
+        """Get all necessary properties for this category.
+
+        Returns:
+            List of CharacteristicProperty objects that are marked as NECESSARY.
+            These properties must be satisfied for category membership.
+        """
         return [
             prop
             for prop in self.characteristic_properties
@@ -137,7 +180,12 @@ class CategoryDefinition:
         ]
 
     def get_sufficient_properties(self) -> List[CharacteristicProperty]:
-        """Get all sufficient properties for this category."""
+        """Get all sufficient properties for this category.
+
+        Returns:
+            List of CharacteristicProperty objects that are marked as SUFFICIENT.
+            Any one of these properties alone can determine category membership.
+        """
         return [
             prop
             for prop in self.characteristic_properties
@@ -145,7 +193,12 @@ class CategoryDefinition:
         ]
 
     def get_typical_properties(self) -> List[CharacteristicProperty]:
-        """Get all typical properties for this category."""
+        """Get all typical properties for this category.
+
+        Returns:
+            List of CharacteristicProperty objects that are marked as TYPICAL.
+            These properties are usually present but not strictly required.
+        """
         return [
             prop
             for prop in self.characteristic_properties
@@ -153,13 +206,25 @@ class CategoryDefinition:
         ]
 
     def add_property(self, property: CharacteristicProperty) -> None:
-        """Add a new characteristic property to the category."""
+        """Add a new characteristic property to the category.
+
+        Args:
+            property: The CharacteristicProperty to add to this category.
+        """
         self.characteristic_properties.append(property)
 
     def add_positive_example(self, example: Example) -> None:
-        """Add a positive example to the category."""
+        """Add a positive example to the category.
+
+        Args:
+            example: An Example object that demonstrates this category.
+        """
         self.positive_examples.append(example)
 
     def add_negative_example(self, example: Example) -> None:
-        """Add a negative example to the category."""
+        """Add a negative example to the category.
+
+        Args:
+            example: An Example object that does not belong to this category.
+        """
         self.negative_examples.append(example)
