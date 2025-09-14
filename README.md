@@ -1,5 +1,11 @@
 # LLM-as-Judge Library
 
+[![CI](https://github.com/gmelli/llm-judge/actions/workflows/ci.yml/badge.svg)](https://github.com/gmelli/llm-judge/actions/workflows/ci.yml)
+[![PyPI version](https://badge.fury.io/py/llm-judge.svg)](https://badge.fury.io/py/llm-judge)
+[![Python Support](https://img.shields.io/pypi/pyversions/llm-judge.svg)](https://pypi.org/project/llm-judge/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![codecov](https://codecov.io/gh/gmelli/llm-judge/branch/main/graph/badge.svg)](https://codecov.io/gh/gmelli/llm-judge)
+
 A robust Python library for evaluating content using Large Language Models as judges, with support for formal category definitions, characteristic properties, and multi-provider consensus.
 
 ## Features
