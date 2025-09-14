@@ -39,7 +39,13 @@ class AnthropicProvider(JudgeProvider):
             ImportError: If the 'anthropic' package is not installed.
         """
         super().__init__(model, temperature, **kwargs)
-        self.api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
+        # Try multiple environment variable names for compatibility
+        self.api_key = (
+            api_key or
+            os.getenv("ANTHROPIC_API_KEY") or
+            os.getenv("ANTHROPIC_KEY") or
+            os.getenv("CLAUDE_API_KEY")  # Alternative naming
+        )
         self._client = None
 
     @property
@@ -56,6 +62,11 @@ class AnthropicProvider(JudgeProvider):
             try:
                 import anthropic
 
+                if not self.api_key:
+                    raise ValueError(
+                        "Anthropic API key not found. Set ANTHROPIC_API_KEY environment variable "
+                        "or pass api_key parameter"
+                    )
                 self._client = anthropic.Anthropic(api_key=self.api_key)
             except ImportError as e:
                 raise ImportError(

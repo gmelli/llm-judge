@@ -5,6 +5,8 @@ Main Judge class that orchestrates evaluations.
 import asyncio
 from typing import Dict, List, Optional, Union
 
+from pathlib import Path
+
 from llm_judge.core.category import CategoryDefinition
 from llm_judge.core.evaluation import (
     ComparisonEvaluator,
@@ -14,6 +16,7 @@ from llm_judge.core.evaluation import (
 )
 from llm_judge.providers.base import JudgeProvider
 from llm_judge.utils.consensus import ConsensusJudge, ConsensusMode
+from llm_judge.utils.cost_tracker import CostTracker
 
 
 class Judge:
@@ -27,6 +30,8 @@ class Judge:
         temperature: float = 0.1,
         consensus_mode: Optional[ConsensusMode] = None,
         cache_enabled: bool = True,
+        track_costs: bool = True,
+        cost_history_file: Optional[Path] = None,
         **kwargs,
     ):
         """
@@ -37,6 +42,8 @@ class Judge:
             temperature: Temperature for LLM generation
             consensus_mode: Mode for multi-provider consensus
             cache_enabled: Whether to cache evaluation results
+            track_costs: Whether to track evaluation costs
+            cost_history_file: Optional file to persist cost history
             **kwargs: Additional provider configuration
         """
         self.temperature = temperature
@@ -44,6 +51,13 @@ class Judge:
         self.cache: Dict[str, EvaluationResult] = {}
         self.evaluation_engine = EvaluationEngine()
         self.comparison_evaluator = ComparisonEvaluator(self.evaluation_engine)
+
+        # Set up cost tracking
+        self.track_costs = track_costs
+        if self.track_costs:
+            self.cost_tracker = CostTracker(cost_history_file)
+        else:
+            self.cost_tracker = None
 
         # Set up providers
         self.providers = self._setup_providers(provider, **kwargs)
@@ -161,6 +175,18 @@ class Judge:
         engine_result.model_used = provider_result.model
         engine_result.evaluation_cost = provider_result.cost
 
+        # Track costs if enabled
+        if self.track_costs and self.cost_tracker and hasattr(provider_result, 'usage'):
+            self.cost_tracker.track_evaluation(
+                provider=provider_result.provider,
+                model=provider_result.model,
+                usage=provider_result.usage or {},
+                category=engine_result.category,
+            )
+            # Update cost from tracker (more accurate)
+            if provider_result.usage:
+                engine_result.evaluation_cost = provider_result.usage.get('total_cost', 0.0)
+
         # Combine confidence scores
         engine_result.confidence = (
             engine_result.confidence * 0.5 + provider_result.confidence * 0.5
@@ -242,3 +268,41 @@ class Judge:
             "hits": getattr(self, "_cache_hits", 0),
             "misses": getattr(self, "_cache_misses", 0),
         }
+
+    def get_cost_summary(self) -> Dict[str, Any]:
+        """Get summary of evaluation costs.
+
+        Returns:
+            Dictionary with cost statistics for current session
+        """
+        if not self.track_costs or not self.cost_tracker:
+            return {"message": "Cost tracking is disabled"}
+
+        return self.cost_tracker.get_session_summary()
+
+    def get_cost_report(self) -> str:
+        """Get formatted cost report.
+
+        Returns:
+            Formatted string report of evaluation costs
+        """
+        if not self.track_costs or not self.cost_tracker:
+            return "Cost tracking is disabled"
+
+        return self.cost_tracker.get_cost_report()
+
+    def get_cost_recommendations(self) -> Dict[str, Any]:
+        """Get cost optimization recommendations.
+
+        Returns:
+            Dictionary with recommendations for reducing costs
+        """
+        if not self.track_costs or not self.cost_tracker:
+            return {"message": "Cost tracking is disabled"}
+
+        return self.cost_tracker.recommend_optimization()
+
+    def clear_cost_session(self):
+        """Clear current session cost tracking."""
+        if self.track_costs and self.cost_tracker:
+            self.cost_tracker.clear_session()

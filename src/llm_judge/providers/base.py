@@ -37,6 +37,11 @@ class ProviderResult:
     tokens_used: int = 0
     cost: float = 0.0
     metadata: Dict[str, Any] = field(default_factory=dict)
+    provider: str = ""
+    usage: Optional[Dict[str, Any]] = None
+    similar_examples: Optional[List[Dict[str, Any]]] = None
+    feedback: Optional[str] = None
+    error: Optional[str] = None
 
 
 class JudgeProvider(ABC):

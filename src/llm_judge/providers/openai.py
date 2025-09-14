@@ -39,7 +39,13 @@ class OpenAIProvider(JudgeProvider):
             ImportError: If the 'openai' package is not installed.
         """
         super().__init__(model, temperature, **kwargs)
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
+        # Try multiple environment variable names for compatibility
+        self.api_key = (
+            api_key or
+            os.getenv("OPENAI_API_KEY") or
+            os.getenv("OPENAI_KEY") or
+            os.getenv("AZURE_OPENAI_API_KEY")  # Support Azure OpenAI
+        )
         self._client = None
 
     @property
@@ -56,6 +62,11 @@ class OpenAIProvider(JudgeProvider):
             try:
                 import openai
 
+                if not self.api_key:
+                    raise ValueError(
+                        "OpenAI API key not found. Set OPENAI_API_KEY environment variable "
+                        "or pass api_key parameter"
+                    )
                 self._client = openai.OpenAI(api_key=self.api_key)
             except ImportError as e:
                 raise ImportError(
