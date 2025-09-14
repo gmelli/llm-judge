@@ -387,9 +387,9 @@ class ComparisonEvaluator:
                 "delta": delta,
                 "improved": mod_score.meets_threshold
                 and not orig_score.meets_threshold,
-                "significant": abs(delta) > 0.1
-                if isinstance(delta, float)
-                else delta != 0,
+                "significant": (
+                    abs(delta) > 0.1 if isinstance(delta, float) else delta != 0
+                ),
                 "meets_threshold": mod_score.meets_threshold,
                 "original_value": orig_score.value,
                 "modified_value": mod_score.value,
