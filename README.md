@@ -138,6 +138,17 @@ for content, result in zip(contents, results):
     print(f"Content {content[:50]}... -> {result.matches_category}")
 ```
 
+## Performance
+
+Based on extensive validation testing:
+
+- **Accuracy**: 82% on binary classification tasks
+- **Improvement**: +24% over word-overlap baseline
+- **Precision**: 100% on hallucination detection
+- **Cost**: $0.0001 per evaluation (Gemini 1.5 Flash)
+- **Speed**: 1-2 seconds per evaluation
+- **Validation**: [See full report](validation/FINAL_VALIDATION_REPORT.md)
+
 ## Category Types
 
 ### Built-in Categories

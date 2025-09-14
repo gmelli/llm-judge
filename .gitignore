@@ -153,9 +153,14 @@ config/secrets.yaml
 # Test outputs
 test_output/
 test_results/
+validation_results/
+test_gemini*.py
 
 # Temporary files
 *.tmp
 *.bak
 *.swp
 *~
+
+# Validation implementation (keep reports, exclude scripts)
+validation/phase*.py

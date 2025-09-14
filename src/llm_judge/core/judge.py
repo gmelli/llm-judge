@@ -3,7 +3,7 @@ Main Judge class that orchestrates evaluations.
 """
 
 import asyncio
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from pathlib import Path
 
@@ -106,7 +106,12 @@ class Judge:
             module = __import__(module_path, fromlist=[class_name])
             provider_class = getattr(module, class_name)
             return provider_class(temperature=self.temperature, **kwargs)
-        except (ImportError, AttributeError):
+        except (ImportError, AttributeError) as e:
+            # Log the error for debugging
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Failed to import {provider_name} provider: {e}")
+
             # Fall back to mock provider if import fails
             from llm_judge.providers.mock import MockProvider
 
@@ -171,30 +176,45 @@ class Judge:
         self, engine_result: EvaluationResult, provider_result, return_feedback: bool
     ) -> EvaluationResult:
         """Merge results from engine and provider evaluations."""
+        # Use provider's category match decision by setting membership score
+        if provider_result.category_match:
+            # Ensure membership score is > 0.5 for a match
+            engine_result.membership_score = max(0.6, provider_result.confidence)
+        else:
+            # Ensure membership score is <= 0.5 for non-match
+            engine_result.membership_score = min(0.4, provider_result.confidence * 0.5)
+
+        # Use provider's scores if available
+        if provider_result.scores:
+            # Convert simple scores dict to PropertyScore objects
+            for prop_name, score_value in provider_result.scores.items():
+                if prop_name in engine_result.property_scores:
+                    engine_result.property_scores[prop_name].raw_score = score_value
+                    engine_result.property_scores[prop_name].meets_threshold = score_value > 0.5
+
         # Update engine result with provider information
         engine_result.model_used = provider_result.model
         engine_result.evaluation_cost = provider_result.cost
 
         # Track costs if enabled
-        if self.track_costs and self.cost_tracker and hasattr(provider_result, 'usage'):
-            self.cost_tracker.track_evaluation(
-                provider=provider_result.provider,
-                model=provider_result.model,
-                usage=provider_result.usage or {},
-                category=engine_result.category,
-            )
-            # Update cost from tracker (more accurate)
-            if provider_result.usage:
-                engine_result.evaluation_cost = provider_result.usage.get('total_cost', 0.0)
+        if self.track_costs and self.cost_tracker and hasattr(provider_result, 'metadata'):
+            usage_data = provider_result.metadata.get('usage', {})
+            if usage_data:
+                self.cost_tracker.track_evaluation(
+                    provider=provider_result.provider,
+                    model=provider_result.model,
+                    usage=usage_data,
+                    category=engine_result.category,
+                )
+                # Update cost from tracker (more accurate)
+                engine_result.evaluation_cost = usage_data.get('total_cost', 0.0)
 
-        # Combine confidence scores
-        engine_result.confidence = (
-            engine_result.confidence * 0.5 + provider_result.confidence * 0.5
-        )
+        # Use provider confidence directly
+        engine_result.confidence = provider_result.confidence
 
         # Add provider reasoning to feedback if requested
         if return_feedback and provider_result.reasoning:
-            engine_result.feedback += f"\n\nLLM Assessment: {provider_result.reasoning}"
+            engine_result.feedback = f"LLM Assessment: {provider_result.reasoning}"
 
         # Update metadata
         engine_result.metadata.update(

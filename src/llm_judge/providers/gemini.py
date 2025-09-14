@@ -138,18 +138,11 @@ class GeminiProvider(JudgeProvider):
                 },
                 "confidence": {
                     "type": "number",
-                    "description": "Confidence score between 0 and 1",
-                    "minimum": 0,
-                    "maximum": 1
+                    "description": "Confidence score between 0 and 1"
                 },
                 "property_scores": {
                     "type": "object",
-                    "description": "Scores for each characteristic property",
-                    "additionalProperties": {
-                        "type": "number",
-                        "minimum": 0,
-                        "maximum": 1
-                    }
+                    "description": "Scores for each characteristic property as key-value pairs"
                 },
                 "reasoning": {
                     "type": "string",
@@ -273,12 +266,14 @@ Return your evaluation as a JSON object with these fields:
                 confidence=result_data.get("confidence", 0.0),
                 scores=result_data.get("property_scores", {}),
                 reasoning=result_data.get("reasoning", ""),
+                raw_response=response.text,
                 model=self.model,
                 provider="gemini",
-                usage=usage,
-                raw_response=response.text,
-                similar_examples=result_data.get("similar_examples", []),
-                feedback=result_data.get("feedback", ""),
+                metadata={
+                    "usage": usage,
+                    "similar_examples": result_data.get("similar_examples", []),
+                    "feedback": result_data.get("feedback", ""),
+                },
             )
 
         except Exception as e:
@@ -289,9 +284,10 @@ Return your evaluation as a JSON object with these fields:
                 confidence=0.0,
                 scores={},
                 reasoning=f"Evaluation failed: {str(e)}",
+                raw_response=str(e),
                 model=self.model,
                 provider="gemini",
-                error=str(e),
+                metadata={"error": str(e)},
             )
 
     def _extract_json_from_text(self, text: str) -> Dict[str, Any]:
@@ -303,9 +299,26 @@ Return your evaluation as a JSON object with these fields:
         Returns:
             Parsed JSON dictionary
         """
-        # Try to find JSON in the text
+        # First, try to parse the entire text as JSON
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            pass
+
+        # Try to extract JSON from markdown code blocks
         import re
-        json_pattern = r'\{[^{}]*\}'
+
+        # Look for ```json blocks
+        json_block_pattern = r'```json\s*(.*?)\s*```'
+        matches = re.findall(json_block_pattern, text, re.DOTALL)
+        for match in matches:
+            try:
+                return json.loads(match)
+            except json.JSONDecodeError:
+                continue
+
+        # Try to find JSON object with balanced braces
+        json_pattern = r'\{(?:[^{}]|(?:\{[^{}]*\}))*\}'
         matches = re.findall(json_pattern, text, re.DOTALL)
 
         for match in matches:
