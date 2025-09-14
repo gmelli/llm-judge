@@ -62,8 +62,192 @@ def generate_synthetic_test_cases(num_samples: int = 100) -> List[Dict]:
     test_cases = []
     companies = ["Apple", "Google", "Microsoft", "Amazon", "Tesla", "Meta"]
 
-    # Generate good summaries (50%)
-    for i in range(num_samples // 2):
+    # Add advanced test patterns (if num_samples >= 10)
+    if num_samples >= 10:
+        # 1. Temporal Consistency Tests
+        temporal_tests = [
+            {
+                "id": "temporal_good_1",
+                "source": "The company was founded in 2010. It went public in 2015. The IPO raised $2 billion.",
+                "summary": "Founded in 2010, the company's 2015 IPO raised $2 billion.",
+                "expected": True,
+                "type": "temporal_correct"
+            },
+            {
+                "id": "temporal_bad_1",
+                "source": "The company was founded in 2010. It went public in 2015. The IPO raised $2 billion.",
+                "summary": "The company went public in 2013, five years after its 2010 founding.",
+                "expected": False,
+                "type": "temporal_error"
+            },
+            {
+                "id": "temporal_good_2",
+                "source": "The project started in January, had a review in March, and launched in June.",
+                "summary": "The project ran from January to June launch, with March review.",
+                "expected": True,
+                "type": "temporal_correct"
+            },
+            {
+                "id": "temporal_bad_2",
+                "source": "The project started in January, had a review in March, and launched in June.",
+                "summary": "After launching in March, the project review happened in June.",
+                "expected": False,
+                "type": "temporal_error"
+            },
+        ]
+        test_cases.extend(temporal_tests[:min(4, num_samples // 25)])
+
+        # 2. Causal Relationship Tests
+        causal_tests = [
+            {
+                "id": "causal_good_1",
+                "source": "Heavy rainfall caused severe flooding, which led to road closures.",
+                "summary": "Rain caused flooding that closed roads.",
+                "expected": True,
+                "type": "causal_correct"
+            },
+            {
+                "id": "causal_bad_1",
+                "source": "Heavy rainfall caused severe flooding, which led to road closures.",
+                "summary": "Road closures caused flooding during the rainfall.",
+                "expected": False,
+                "type": "causal_reversal"
+            },
+            {
+                "id": "causal_good_2",
+                "source": "The server crash caused data loss, resulting in customer complaints.",
+                "summary": "Server failure led to data loss and customer complaints.",
+                "expected": True,
+                "type": "causal_correct"
+            },
+            {
+                "id": "causal_bad_2",
+                "source": "The server crash caused data loss, resulting in customer complaints.",
+                "summary": "Customer complaints about data caused the server to crash.",
+                "expected": False,
+                "type": "causal_reversal"
+            },
+        ]
+        test_cases.extend(causal_tests[:min(4, num_samples // 25)])
+
+        # 3. Quantifier Precision Tests
+        quantifier_tests = [
+            {
+                "id": "quantifier_good_1",
+                "source": "Most employees (about 70%) approved the new policy.",
+                "summary": "A majority of employees approved the policy.",
+                "expected": True,
+                "type": "quantifier_correct"
+            },
+            {
+                "id": "quantifier_bad_all",
+                "source": "Most employees (about 70%) approved the new policy.",
+                "summary": "All employees approved the new policy.",
+                "expected": False,
+                "type": "quantifier_error_all"
+            },
+            {
+                "id": "quantifier_bad_few",
+                "source": "Most employees (about 70%) approved the new policy.",
+                "summary": "Few employees approved the new policy.",
+                "expected": False,
+                "type": "quantifier_error_few"
+            },
+            {
+                "id": "quantifier_good_2",
+                "source": "Some users experienced issues, but most were satisfied.",
+                "summary": "While a few had problems, the majority were satisfied.",
+                "expected": True,
+                "type": "quantifier_correct"
+            },
+            {
+                "id": "quantifier_bad_none",
+                "source": "Some users experienced issues, but most were satisfied.",
+                "summary": "All users were satisfied with no issues.",
+                "expected": False,
+                "type": "quantifier_error_none"
+            },
+        ]
+        test_cases.extend(quantifier_tests[:min(5, num_samples // 20)])
+
+        # 4. Attribution Error Tests
+        attribution_tests = [
+            {
+                "id": "attribution_good_1",
+                "source": "According to the CDC, vaccines are safe. The WHO recommends annual flu shots.",
+                "summary": "The CDC confirms vaccine safety, while WHO recommends yearly flu vaccination.",
+                "expected": True,
+                "type": "attribution_correct"
+            },
+            {
+                "id": "attribution_bad_swap",
+                "source": "According to the CDC, vaccines are safe. The WHO recommends annual flu shots.",
+                "summary": "The WHO states vaccines are safe, and the CDC recommends annual flu shots.",
+                "expected": False,
+                "type": "attribution_swap"
+            },
+            {
+                "id": "attribution_good_2",
+                "source": "Google announced layoffs. Microsoft reported strong earnings.",
+                "summary": "Google cut jobs while Microsoft posted strong results.",
+                "expected": True,
+                "type": "attribution_correct"
+            },
+            {
+                "id": "attribution_bad_swap_2",
+                "source": "Google announced layoffs. Microsoft reported strong earnings.",
+                "summary": "Microsoft announced layoffs while Google reported strong earnings.",
+                "expected": False,
+                "type": "attribution_swap"
+            },
+        ]
+        test_cases.extend(attribution_tests[:min(4, num_samples // 25)])
+
+        # 5. Negation Handling Tests
+        negation_tests = [
+            {
+                "id": "negation_good_1",
+                "source": "The study found no significant link between the treatment and recovery rates.",
+                "summary": "No significant connection was found between treatment and recovery.",
+                "expected": True,
+                "type": "negation_correct"
+            },
+            {
+                "id": "negation_bad_removed",
+                "source": "The study found no significant link between the treatment and recovery rates.",
+                "summary": "The study found a significant link between treatment and recovery.",
+                "expected": False,
+                "type": "negation_removed"
+            },
+            {
+                "id": "negation_good_2",
+                "source": "The drug did not show improvement in patients.",
+                "summary": "No patient improvement was observed with the drug.",
+                "expected": True,
+                "type": "negation_correct"
+            },
+            {
+                "id": "negation_bad_flipped",
+                "source": "The drug did not show improvement in patients.",
+                "summary": "The drug showed improvement in patients.",
+                "expected": False,
+                "type": "negation_removed"
+            },
+            {
+                "id": "negation_bad_added",
+                "source": "The company achieved its quarterly targets.",
+                "summary": "The company did not achieve its quarterly targets.",
+                "expected": False,
+                "type": "negation_added"
+            },
+        ]
+        test_cases.extend(negation_tests[:min(5, num_samples // 20)])
+
+    # Generate remaining standard test cases
+    remaining = num_samples - len(test_cases)
+
+    # Generate good summaries (50% of remaining)
+    for i in range(remaining // 2):
         company = random.choice(companies)
         revenue = random.randint(10, 200)
         quarter = random.choice(["Q1", "Q2", "Q3", "Q4"])
@@ -153,6 +337,44 @@ def calculate_baseline_accuracy(test_cases: List[Dict]) -> float:
     return correct / len(test_cases)
 
 
+def analyze_results_by_type(test_cases: List[Dict], predictions: List[bool]) -> Dict[str, Dict]:
+    """
+    Analyze results grouped by error type.
+
+    Args:
+        test_cases: List of test cases with type information
+        predictions: List of boolean predictions
+
+    Returns:
+        Dictionary with performance metrics by error type
+    """
+    type_metrics = {}
+
+    for test_case, prediction in zip(test_cases, predictions):
+        error_type = test_case.get("type", "standard")
+
+        if error_type not in type_metrics:
+            type_metrics[error_type] = {
+                "correct": 0,
+                "total": 0,
+                "examples": []
+            }
+
+        type_metrics[error_type]["total"] += 1
+        if prediction == test_case["expected"]:
+            type_metrics[error_type]["correct"] += 1
+        else:
+            # Store failed examples for analysis
+            type_metrics[error_type]["examples"].append(test_case["id"])
+
+    # Calculate accuracy for each type
+    for error_type in type_metrics:
+        metrics = type_metrics[error_type]
+        metrics["accuracy"] = metrics["correct"] / metrics["total"] if metrics["total"] > 0 else 0
+
+    return type_metrics
+
+
 async def run_validation(provider: str = "gemini", num_samples: int = 100):
     """
     Run the validation with synthetic test cases.
@@ -203,6 +425,7 @@ async def run_validation(provider: str = "gemini", num_samples: int = 100):
     # Run evaluations
     print("Running evaluations...")
     correct = 0
+    predictions = []
 
     for i, case in enumerate(test_cases):
         # Show progress
@@ -215,12 +438,16 @@ async def run_validation(provider: str = "gemini", num_samples: int = 100):
         # Evaluate
         result = await judge.evaluate(context, category)
         prediction = result.matches_category
+        predictions.append(prediction)
 
         if prediction == case["expected"]:
             correct += 1
 
     llm_accuracy = correct / len(test_cases)
     improvement = llm_accuracy - baseline_accuracy
+
+    # Analyze by error type
+    type_analysis = analyze_results_by_type(test_cases, predictions)
 
     # Get cost summary
     cost_info = judge.get_cost_summary()
@@ -238,6 +465,19 @@ async def run_validation(provider: str = "gemini", num_samples: int = 100):
     print(f"  Total cost: ${cost_info.get('total_cost', 0):.4f}")
     print(f"  Per evaluation: ${cost_info.get('average_cost', 0):.6f}")
     print(f"  Total evaluations: {cost_info.get('total_evaluations', 0)}\n")
+
+    # Print performance by error type (for advanced patterns)
+    advanced_types = ["temporal_error", "temporal_correct", "causal_reversal", "causal_correct",
+                     "quantifier_error_all", "quantifier_error_few", "quantifier_error_none", "quantifier_correct",
+                     "attribution_swap", "attribution_correct", "negation_removed", "negation_added", "negation_correct"]
+
+    advanced_in_test = [t for t in advanced_types if t in type_analysis]
+    if advanced_in_test:
+        print("Advanced Pattern Performance:")
+        for error_type in advanced_in_test:
+            metrics = type_analysis[error_type]
+            print(f"  {error_type:20} {metrics['accuracy']:.1%} ({metrics['correct']}/{metrics['total']})")
+        print()
 
     # Success criteria
     success = llm_accuracy > baseline_accuracy and llm_accuracy > 0.7
