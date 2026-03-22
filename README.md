@@ -8,6 +8,10 @@
 
 A robust Python library for evaluating content using Large Language Models as judges, with support for formal category definitions, characteristic properties, and multi-provider consensus.
 
+## Why LLM-as-Judge?
+
+Evaluating LLM output is one of the hardest problems in production AI. Human evaluation does not scale. Simple metrics miss nuance. LLM-as-Judge provides a structured, reproducible way to evaluate content quality using the same models that generate it, with formal category definitions and multi-provider consensus to reduce single-model bias.
+
 ## Features
 
 - **Formal Category System**: Define categories with characteristic properties (necessary, sufficient, typical)
